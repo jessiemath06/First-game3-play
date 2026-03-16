@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title> Jessie Math 捷析 - 機關牆移動周期</title>
+    
+    <meta name="description" content="© 2025–2026 Jessie Math 捷析老師. All rights reserved.">
+    <meta property="og:title" content=" Jessie Math 捷析 - 機關牆移動周期">
+    <meta property="og:description" content="© 2025–2026 Jessie Math 捷析老師. All rights reserved.">
+    <meta property="og:type" content="website">
+    
+    <meta property="og:image" content="g6-u3-2.png">
+    <meta property="og:image:width" content="1024">
+    <meta property="og:image:height" content="1536">
+    <meta property="og:image:alt" content="Jessie Math 遊戲封面">
+    
+    <link rel="image_src" href="g6-u3-2.png">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content=" Jessie Math 捷析 - 機關牆移動周期">
+    <meta name="twitter:description" content="© 2025–2026 Jessie Math 捷析老師. All rights reserved.">
+    <meta name="twitter:image" content="g6-u3-2.png">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #2c3e50;
+            --wall-color: #7f8c8d;
+            --accent-color: #f39c12;
+            --text-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --header-bg: #1a252f;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            
+            background-color: var(--bg-color);
+            background-image: url('jessie-logo-play.jpg');
+            background-size: cover;
+            background-position: top right;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        /* 新增：當白板開啟時，防止全畫面文字反藍 */
+        body.wb-active {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        /* 新增：當白板開啟時，暫時移除模糊以突破層級限制，讓操作按鈕透出可點擊 */
+        body.wb-active #game-container {
+            backdrop-filter: none !important;
+        }
+
+        #rotate-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #1a252f;
+            z-index: 9999;
+            color: var(--accent-color);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #rotate-overlay i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: rotatePhone 2s infinite ease-in-out;
+        }
+        @keyframes rotatePhone {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(-90deg); }
+            100% { transform: rotate(-90deg); }
+        }
+
+        @media screen and (max-width: 767px) and (orientation: portrait) {
+            #rotate-overlay { display: flex; }
+            #main-wrapper { display: none !important; }
+        }
+
+        #main-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        header {
+            width: 100%;
+            background-color: rgba(26, 37, 47, 0.95); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            box-sizing: border-box;
+            border-bottom: 3px solid var(--accent-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-bg {
+            width: 50px;
+            height: 50px;
+            background-color: #f1c40f;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+        }
+
+        .logo-bg img {
+            width: 80%;
+            height: auto;
+            background: transparent;
+        }
+
+        .brand-name {
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            margin-left: 15px;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #ecf0f1;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: var(--accent-color);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        .sound-btn-fixed {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: var(--header-bg);
+            border: 3px solid var(--accent-color);
+            color: var(--accent-color);
+            font-size: 24px;
+            cursor: pointer;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+        }
+        .sound-btn-fixed:hover {
+            background: var(--accent-color);
+            color: #fff;
+            transform: scale(1.1);
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 650px;
+            background: rgba(26, 37, 47, 0.92);
+            border: 4px solid var(--wall-color);
+            border-radius: 10px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            padding: 25px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.8);
+            text-align: center;
+            position: relative;
+            box-sizing: border-box;
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            color: var(--accent-color);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 28px;
+            margin-top: 0;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 2px solid var(--accent-color);
+            background: #34495e;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        button.action-btn {
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        button.action-btn:hover {
+            background-color: #e67e22;
+            transform: scale(1.05);
+        }
+
+        .rules {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: left;
+            margin: 15px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            padding: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+        }
+
+        #timer { color: var(--danger-color); }
+        #score-display { color: var(--success-color); }
+        #attempt-display { color: #f1c40f; }
+
+        #question-desc {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #bdc3c7;
+            line-height: 1.5;
+            min-height: 54px;
+        }
+
+        .sequence-box {
+            font-size: 32px;
+            letter-spacing: 3px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #34495e;
+            border: 2px dashed var(--accent-color);
+            border-radius: 10px;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        .image-box {
+            margin: 20px 0;
+            padding: 10px;
+            background: #fff;
+            border-radius: 10px;
+            border: 3px solid var(--accent-color);
+            display: none;
+        }
+
+        .image-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+        
+        .image-alt-text {
+            color: #333;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            background-color: #7f8c8d;
+            color: white;
+            font-size: 20px;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #576574;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .option-btn:hover {
+            background-color: var(--accent-color);
+            box-shadow: 0 4px 0 #d35400;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        .game-controls {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: relative;
+            z-index: 101; /* 確保按鈕高於白板層級可被點擊 */
+        }
+
+        .ctrl-btn {
+            background-color: #34495e;
+            color: white;
+            border: 2px solid #7f8c8d;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background-color: #2c3e50;
+            border-color: var(--accent-color);
+        }
+
+        .ctrl-btn.active {
+            background-color: var(--accent-color);
+            border-color: #fff;
+        }
+        
+        /* 變更：改為滿版且防滑動的樣式 */
+        #whiteboard {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 100;
+            pointer-events: none;
+            touch-action: none; /* 防止畫面因觸控筆而滾動移動 */
+        }
+        #whiteboard.active {
+            pointer-events: auto;
+            background: transparent; 
+            cursor: crosshair;
+        }
+        .wb-hint {
+            display: none;
+            color: #f1c40f;
+            font-size: 14px;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        .badge-img {
+            max-width: 250px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px var(--accent-color);
+            margin: 20px auto;
+            border: 4px solid var(--accent-color);
+            display: none;
+        }
+
+        .leaderboard {
+            margin-top: 20px;
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            overflow-x: auto;
+        }
+        .leaderboard h3 { margin-top: 0; color: var(--accent-color); }
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .leaderboard-table th, .leaderboard-table td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .leaderboard-table th {
+            background-color: rgba(243, 156, 18, 0.3);
+            color: var(--accent-color);
+        }
+
+        footer {
+            margin-top: auto;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .footer-pill {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(26, 37, 47, 0.95);
+            border-radius: 50px;
+            padding: 10px 30px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .footer-left { display: flex; align-items: center; gap: 10px; }
+        .footer-dot {
+            width: 10px; height: 10px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-color);
+        }
+        .footer-copy { color: #bdc3c7; font-size: 14px; }
+        .footer-right { display: flex; align-items: center; gap: 10px; }
+        .footer-icon { color: var(--accent-color); font-size: 18px; }
+        .footer-tagline { color: #ecf0f1; font-size: 14px; font-weight: bold; }
+
+        @media (max-width: 600px) {
+            .footer-pill {
+                flex-direction: column;
+                border-radius: 15px;
+                text-align: center;
+                gap: 10px;
+            }
+            .footer-left, .footer-right { justify-content: center; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes wallsClosing {
+            0% { border-width: 4px; border-color: var(--wall-color); }
+            50% { border-width: 15px; border-color: var(--danger-color); box-shadow: 0 0 30px rgba(231, 76, 60, 0.8); }
+            100% { border-width: 4px; border-color: var(--wall-color); }
+        }
+        .warning { animation: wallsClosing 1s infinite; }
+    </style>
+</head>
+<body>
+
+    <div id="rotate-overlay">
+        <i class="fas fa-mobile-alt"></i>
+        <div>📱 請將手機轉為橫向<br>以獲得最佳遊戲體驗！</div>
+    </div>
+
+    <canvas id="whiteboard"></canvas>
+
+    <div id="main-wrapper">
+        <header>
+            <div class="logo-container">
+                <div class="logo-bg">
+                    <img src="JESSIEMATH-Q.png" alt="Jessie Math Logo" onerror="this.style.display='none'">
+                </div>
+                <span class="brand-name"> Jessie Math 捷析 </span>
+            </div>
+            <nav class="nav-links">
+                <a href="https://jessiemath0703-chu.github.io/website2/">🏠 首頁</a>
+                <a href="https://jessiemath0703-chu.github.io/Game-Lobby/">🎮 遊戲大廳</a>
+                <a href="https://jessiemath0703-chu.github.io/Game-Lobby/#g6-u3">🔙 G6規律</a>
+            </nav>
+        </header>
+
+        <div id="game-container">
+            <div id="screen-start" class="screen active">
+                <h1>⚙️ 機關牆移動周期 ⚙️</h1>
+                
+                <div class="rules">
+                    <strong>📜 逃脫規則：</strong><br>
+                    迷宮的機關牆正在快速合攏！你必須找出牆壁移動的「數字與圖形規律」。<br>
+                    👉 在 <strong>75秒</strong> 內，你擁有 <strong>10次答題機會</strong>。<br>
+                    👉 只要累積答對 <strong>5題</strong>，即可停止機關並逃出生天！<br>
+                    🏆 成功逃脫者，將獲得專屬【規律大師徽章】！
+                </div>
+
+                <input type="text" id="player-name" placeholder="請輸入你的名字以啟動機關..." autocomplete="off">
+                <br>
+                <button class="action-btn" onclick="startGame()">進入迷宮</button>
+
+                <div class="leaderboard">
+                    <h3>🏆 逃脫英雄榜</h3>
+                    <table class="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>名次</th>
+                                <th>玩家</th>
+                                <th>狀態</th>
+                                <th>答對</th>
+                                <th>分數</th>
+                                <th>耗時</th>
+                                <th>日期</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-list">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="screen-game" class="screen">
+                <div class="stats">
+                    <div>⏳ 時間: <span id="timer">75</span>s</div>
+                    <div>🛡️ 解除: <span id="score-display">0</span>/5</div>
+                    <div>📝 題數: <span id="attempt-display">0</span>/10</div>
+                </div>
+                
+                <p id="question-desc">請找出規律，選出正確的答案：</p>
+                
+                <div class="sequence-box" id="sequence-display"></div>
+
+                <div class="image-box" id="image-display">
+                    <img id="question-image" src="" alt="圖片載入中..." onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <div class="image-alt-text" id="image-fallback" style="display:none;"></div>
+                </div>
+
+                <div class="options" id="options-container"></div>
+
+                <div class="game-controls">
+                    <button class="ctrl-btn" onclick="togglePause()" id="pause-btn"><i class="fas fa-pause"></i> 暫停</button>
+                    <button class="ctrl-btn" onclick="restartGame()"><i class="fas fa-redo"></i> 重新開始</button>
+                    <button class="ctrl-btn" onclick="backToMenu()"><i class="fas fa-home"></i> 回主選單</button>
+                    <button class="ctrl-btn" onclick="toggleWhiteboard()" id="wb-btn"><i class="fas fa-pen"></i> 白板</button>
+                    <button class="ctrl-btn" onclick="clearWhiteboard()" id="wb-clear-btn" style="display:none;"><i class="fas fa-eraser"></i> 清除白板</button>
+                    <div class="wb-hint" id="wb-hint">(計算完畢請點擊「關閉白板」以選取答案)</div>
+                </div>
+            </div>
+
+            <div id="screen-result" class="screen">
+                <h1 id="result-title">結算</h1>
+                <p id="result-message"></p>
+                
+                <img src="G6-U3.jpg" alt="通關徽章" id="badge-image" class="badge-img">
+                <br>
+                <button class="action-btn" onclick="resetToStart()">返回首頁</button>
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-pill">
+                <div class="footer-left">
+                    <div class="footer-dot" aria-hidden="true"></div>
+                    <div class="footer-copy">© 2025–2026 Jessie Math 捷析老師. All rights reserved.</div>
+                </div>
+                <div class="footer-right">
+                    <div class="footer-icon" aria-hidden="true"><i class="fas fa-compass"></i></div>
+                    <div class="footer-tagline">數學不迷路，捷析Jessie帶你走向理解。</div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <button id="sound-toggle" class="sound-btn-fixed" onclick="toggleSound()" title="開啟/關閉音效">
+        <i class="fas fa-volume-up"></i>
+    </button>
+
+    <script>
+        let soundEnabled = true;
+        const sounds = {
+            bgm: new Audio('3.mp3'),
+            correct: new Audio('1.mp3'),
+            wrong: new Audio('2.mp3'),
+            fail: new Audio('4.mp3'),
+            win: new Audio('5.mp3')
+        };
+        sounds.bgm.loop = true;
+        sounds.bgm.volume = 0.4; 
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btnIcon = document.querySelector('#sound-toggle i');
+            if (soundEnabled) {
+                btnIcon.className = 'fas fa-volume-up';
+                if(document.getElementById('screen-game').classList.contains('active') && !isPaused) {
+                    sounds.bgm.play().catch(e=>console.log(e));
+                }
+            } else {
+                btnIcon.className = 'fas fa-volume-mute';
+                sounds.bgm.pause();
+            }
+        }
+
+        let sfxTimeout;
+        function playSfx(type) {
+            if (!soundEnabled) return;
+            sounds.correct.pause(); sounds.correct.currentTime = 0;
+            sounds.wrong.pause(); sounds.wrong.currentTime = 0;
+            clearTimeout(sfxTimeout);
+
+            if(type === 'correct') {
+                sounds.correct.play().catch(e=>console.log(e));
+                sfxTimeout = setTimeout(() => { sounds.correct.pause(); sounds.correct.currentTime = 0; }, 2000);
+            } else if(type === 'wrong') {
+                sounds.wrong.play().catch(e=>console.log(e));
+                sfxTimeout = setTimeout(() => { sounds.wrong.pause(); sounds.wrong.currentTime = 0; }, 2000);
+            } else if(type === 'win') {
+                sounds.win.currentTime = 0;
+                sounds.win.play().catch(e=>console.log(e));
+            } else if(type === 'fail') {
+                sounds.fail.currentTime = 0;
+                sounds.fail.play().catch(e=>console.log(e));
+            }
+        }
+
+        const TOTAL_TIME = 75; 
+        const TARGET_SCORE = 5;
+        const MAX_ATTEMPTS = 10;
+        
+        let playerName = "";
+        let currentScore = 0;
+        let currentAttempt = 0;
+        let timeLeft = TOTAL_TIME;
+        let timerInterval;
+        let currentAnswer = 0;
+        let currentRoundQuestions = [];
+        let isShowingFeedback = false; 
+
+        const questionPool = [
+            { type: 'graphic', src: 'q-hex.jpg', fallbackText: '觀察圖形規律，排 11 個相連的正六邊形，一共需要幾根棉花棒？', options: [56, 51, 61, 66], answer: 56 },
+            { type: 'graphic', src: 'q-tri.jpg', fallbackText: '觀察圖形規律，排 18 個連續相連的正三角形，一共需要幾根火柴棒？', options: [37, 35, 39, 41], answer: 37 },
+            { type: 'graphic', src: 'q-hollow1.jpg', fallbackText: '用灰色骨牌圍成一個空心正方形，每邊排 12 個。這個圖形共用了幾個灰色骨牌？', options: [44, 48, 40, 36], answer: 44 },
+            { type: 'text', seqText: '每邊 9 顆珠子的「實心正方形」，會比每邊 9 顆珠子的「空心正方形」多用幾顆珠子？', options: [49, 81, 32, 50], answer: 49 },
+            { type: 'text', seqText: '花圃裡的鬱金香按「紅、黃、黃、白、紫」的順序排列。請問第 73 朵是什麼顏色？', options: ['黃色', '紅色', '白色', '紫色'], answer: '黃色' },
+            { type: 'text', seqText: '運動會會場有一排小旗子，按「藍、白、白、白、紅、紅」的順序排列。從第 1 面到第 150 面旗子中，白色的旗子比紅色的旗子多幾面？', options: [25, 30, 75, 50], answer: 25 },
+            { type: 'text', seqText: '今年的 4 月 3 日是星期四，請問同一年的 4 月 29 日是星期幾？', options: ['星期二', '星期三', '星期一', '星期日'], answer: '星期二' },
+            { type: 'text', seqText: '高鐵一節車廂有 13 排，每排有 5 個座位，由左至右分別是 A, B, C (走道) D, E。請問第 48 號座位是靠窗還是靠走道？', options: ['靠走道', '靠窗', '正中間', '無法判斷'], answer: '靠走道' },
+            { type: 'text', seqText: '客運座位由前到後排號，左側靠窗是1、5、9號，右側靠窗是2、6、10號。請問 37 號座位在哪裡？', options: ['左側靠窗', '右側靠窗', '左側走道', '右側走道'], answer: '左側靠窗' },
+            { type: 'text', seqText: '道路長 1200 公尺，在「兩側」每隔 30 公尺種一棵樹，起點和終點「一端種一端不種」。請問共要種幾棵樹？', options: [80, 82, 78, 40], answer: 80 },
+            { type: 'text', seqText: '一個長 150 公尺、寬 90 公尺的長方形溜冰場，外圍每隔 15 公尺插一面旗子（四個角落都要插）。一共需要幾面旗子？', options: [32, 36, 30, 34], answer: 32 },
+            { type: 'text', seqText: '大笨鐘敲 5 下需要 8 秒鐘。請問用同樣的速度敲 10 下，需要幾秒鐘？', options: [18, 16, 20, 15], answer: 18 },
+            { type: 'graphic', src: 'q-map.jpg', fallbackText: '炭一郎家到早餐店有 2 條路，早餐店到學校有 3 條路；炭一郎家到小蝶家有 3 條路，小蝶家到學校有 2 條路。他先去買早餐或接小蝶，再到學校，共有幾種走法？', options: [12, 10, 13, 36], answer: 12 },
+            { type: 'text', seqText: '漢堡店有 6 款漢堡（2 款含牛肉）、4 種副餐（1 種含牛肉）、4 種飲料。不吃牛肉的客人，套餐（主+副+飲各一）共有幾種搭配方式？', options: [48, 64, 96, 72], answer: 48 },
+            { type: 'text', seqText: '用 0、3、5、8 四張數字卡，排成一個「大於 8 的二位小數」（數字不可重複）。請問有幾種排法？', options: [4, 6, 8, 12], answer: 4 },
+            { type: 'math_seq', seqText: '觀察數列規律：2, 5, 10, 17, 26, ?', options: [37, 35, 39, 41], answer: 37 },
+            { type: 'math_seq', seqText: '觀察數列規律：1, 4, 9, 16, 25, ?', options: [36, 30, 49, 35], answer: 36 }
+        ];
+
+        loadLeaderboard();
+
+        function startGame() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            if (!nameInput) {
+                alert("請先輸入名字才能進入迷宮！");
+                return;
+            }
+            playerName = nameInput;
+            currentScore = 0;
+            currentAttempt = 0;
+            timeLeft = TOTAL_TIME;
+            isShowingFeedback = false;
+            
+            if(soundEnabled) {
+                sounds.bgm.currentTime = 0;
+                sounds.bgm.play().catch(e=>console.log(e));
+            }
+            
+            currentRoundQuestions = [...questionPool].sort(() => Math.random() - 0.5).slice(0, MAX_ATTEMPTS);
+            
+            updateStatsUI();
+            document.getElementById('game-container').classList.remove('warning');
+
+            switchScreen('screen-game');
+            generateQuestion();
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(timerTick, 1000);
+        }
+
+        function timerTick() {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
+            
+            if (timeLeft <= 10) {
+                document.getElementById('game-container').classList.add('warning');
+            }
+            if (timeLeft <= 0) {
+                endGame(false);
+            }
+        }
+
+        function updateStatsUI() {
+            document.getElementById('score-display').innerText = currentScore;
+            document.getElementById('attempt-display').innerText = currentAttempt;
+            document.getElementById('timer').innerText = timeLeft;
+        }
+
+        function generateQuestion() {
+            if (currentScore >= TARGET_SCORE) { endGame(true); return; }
+            if (currentAttempt >= MAX_ATTEMPTS) { endGame(false); return; }
+            
+            let q = currentRoundQuestions[currentAttempt];
+            currentAnswer = q.answer;
+
+            const titleDesc = document.getElementById('question-desc');
+            const sequenceBox = document.getElementById('sequence-display');
+            const imgBox = document.getElementById('image-display');
+            const imgTag = document.getElementById('question-image');
+            const fallbackTag = document.getElementById('image-fallback');
+
+            titleDesc.style.color = '#bdc3c7';
+
+            if (q.type === 'graphic') {
+                titleDesc.innerHTML = "👀 請觀察下方【圖形或情境】的規律，選出正確的數量：";
+                sequenceBox.style.display = 'none';
+                imgBox.style.display = 'block';
+                imgTag.style.display = 'inline-block';
+                fallbackTag.style.display = 'none';
+                imgTag.src = q.src;
+                fallbackTag.innerText = q.fallbackText;
+            } else {
+                titleDesc.innerHTML = "🔢 請閱讀題目找出規律，選出正確答案：";
+                imgBox.style.display = 'none';
+                sequenceBox.style.display = 'block';
+                sequenceBox.innerText = q.seqText;
+                
+                if (q.type === 'math_seq') {
+                    sequenceBox.style.fontSize = "36px";
+                } else {
+                    sequenceBox.style.fontSize = "22px";
+                    sequenceBox.style.letterSpacing = "1px";
+                }
+            }
+
+            renderOptions(q.options, q.answer);
+        }
+
+        function renderOptions(optionsArray, correctAnswer) {
+            let shuffledOptions = [...optionsArray].sort(() => Math.random() - 0.5);
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            shuffledOptions.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = function() { checkAnswer(opt, this); };
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, btnElement) {
+            if (isShowingFeedback) return; 
+            isShowingFeedback = true;
+            clearInterval(timerInterval); 
+            
+            currentAttempt++;
+            const isCorrect = (selected === currentAnswer);
+            const allBtns = document.querySelectorAll('.option-btn');
+            
+            allBtns.forEach(btn => {
+                btn.style.pointerEvents = 'none';
+                if (btn.innerText == currentAnswer) {
+                    btn.style.backgroundColor = 'var(--success-color)';
+                    btn.style.boxShadow = '0 4px 0 #27ae60';
+                }
+            });
+
+            if (isCorrect) {
+                playSfx('correct');
+                currentScore++;
+                btnElement.innerHTML += ' <i class="fas fa-check-circle"></i>';
+                document.getElementById('question-desc').innerHTML = '<span style="color:var(--success-color);">答對了！</span>';
+                document.body.style.backgroundColor = "rgba(39, 174, 96, 0.3)";
+            } else {
+                playSfx('wrong');
+                btnElement.style.backgroundColor = 'var(--danger-color)';
+                btnElement.style.boxShadow = '0 4px 0 #c0392b';
+                btnElement.innerHTML += ' <i class="fas fa-times-circle"></i>';
+                document.getElementById('question-desc').innerHTML = `<span style="color:var(--danger-color);">答錯了！正確答案是 ${currentAnswer}</span>`;
+                document.body.style.backgroundColor = "rgba(192, 57, 43, 0.3)";
+            }
+            
+            setTimeout(() => document.body.style.backgroundColor = "var(--bg-color)", 400);
+            updateStatsUI();
+
+            setTimeout(() => {
+                isShowingFeedback = false;
+                if (currentScore >= TARGET_SCORE) {
+                    endGame(true);
+                } else if (currentAttempt >= MAX_ATTEMPTS) {
+                    endGame(false);
+                } else {
+                    generateQuestion();
+                    if (!isPaused) timerInterval = setInterval(timerTick, 1000); 
+                }
+            }, 2000);
+        }
+
+        function endGame(isWin) {
+            clearInterval(timerInterval);
+            if(soundEnabled) sounds.bgm.pause();
+            document.getElementById('game-container').classList.remove('warning');
+            switchScreen('screen-result');
+
+            const titleObj = document.getElementById('result-title');
+            const msgObj = document.getElementById('result-message');
+            const badgeObj = document.getElementById('badge-image');
+            let timeUsed = TOTAL_TIME - timeLeft;
+
+            if (isWin) {
+                playSfx('win');
+                titleObj.innerText = "🎉 逃脫成功！ 🎉";
+                titleObj.style.color = "var(--success-color)";
+                msgObj.innerHTML = `太厲害了，<strong>${playerName}</strong>！<br>你在 ${timeUsed} 秒內成功達成解鎖條件！<br>這是屬於你的【規律大師徽章】！`;
+                badgeObj.style.display = "block";
+                saveToLeaderboard(playerName, timeUsed, currentScore, true);
+            } else {
+                playSfx('fail');
+                titleObj.innerText = "💥 逃脫失敗 💥";
+                titleObj.style.color = "var(--danger-color)";
+                if (timeLeft <= 0) {
+                    msgObj.innerHTML = `很遺憾，<strong>${playerName}</strong>。<br>時間到了，機關牆已經合攏...<br>你答對了 ${currentScore} 題，請再接再厲！`;
+                } else {
+                    msgObj.innerHTML = `很遺憾，<strong>${playerName}</strong>。<br>10 次機會已用盡，僅答對 ${currentScore} 題，未能達成解除條件...<br>再試一次吧！`;
+                }
+                badgeObj.style.display = "none";
+                saveToLeaderboard(playerName, timeUsed, currentScore, false);
+            }
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function resetToStart() {
+            sounds.bgm.pause();
+            document.getElementById('player-name').value = '';
+            loadLeaderboard();
+            switchScreen('screen-start');
+        }
+
+        function saveToLeaderboard(name, time, score, isWin) {
+            let board = JSON.parse(localStorage.getItem('jessieMath_G6U3_board_v2')) || [];
+            let today = new Date();
+            let dateStr = `${today.getMonth()+1}/${today.getDate()} ${today.getHours().toString().padStart(2,'0')}:${today.getMinutes().toString().padStart(2,'0')}`;
+            
+            board.push({ 
+                name: name, 
+                time: time, 
+                score: score,
+                gameScore: score * 20, 
+                status: isWin ? '成功' : '失敗',
+                date: dateStr
+            });
+            
+            board.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.time - b.time;
+            });
+            board = board.slice(0, 10); 
+            localStorage.setItem('jessieMath_G6U3_board_v2', JSON.stringify(board));
+        }
+
+        function loadLeaderboard() {
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+            let board = JSON.parse(localStorage.getItem('jessieMath_G6U3_board_v2')) || [];
+            if (board.length === 0) {
+                list.innerHTML = '<tr><td colspan="7">目前還沒有紀錄，快來挑戰！</td></tr>';
+                return;
+            }
+            board.forEach((entry, index) => {
+                let statusColor = entry.status === '成功' ? 'var(--success-color)' : 'var(--danger-color)';
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${entry.name}</strong></td>
+                    <td style="color:${statusColor}">${entry.status}</td>
+                    <td>${entry.score}/10</td>
+                    <td>${entry.gameScore}</td>
+                    <td>${entry.time}s</td>
+                    <td>${entry.date}</td>
+                `;
+                list.appendChild(tr);
+            });
+        }
+
+        let isPaused = false;
+        
+        function togglePause() {
+            if(isShowingFeedback) return; 
+            isPaused = !isPaused;
+            const pauseBtn = document.getElementById('pause-btn');
+            const optionsContainer = document.getElementById('options-container');
+            
+            if(isPaused) {
+                clearInterval(timerInterval);
+                pauseBtn.innerHTML = '<i class="fas fa-play"></i> 繼續';
+                pauseBtn.classList.add('active');
+                optionsContainer.style.pointerEvents = 'none';
+                optionsContainer.style.opacity = '0.5';
+            } else {
+                pauseBtn.innerHTML = '<i class="fas fa-pause"></i> 暫停';
+                pauseBtn.classList.remove('active');
+                optionsContainer.style.pointerEvents = 'auto';
+                optionsContainer.style.opacity = '1';
+                timerInterval = setInterval(timerTick, 1000);
+            }
+        }
+
+        function restartGame() {
+            if(confirm("確定要重新開始嗎？")) {
+                resetGameState();
+                startGame();
+            }
+        }
+
+        function backToMenu() {
+            if(confirm("確定要回主選單嗎？遊戲進度將會遺失。")) {
+                resetGameState();
+                resetToStart();
+            }
+        }
+
+        function resetGameState() {
+            clearInterval(timerInterval);
+            isPaused = false;
+            isShowingFeedback = false;
+            const pauseBtn = document.getElementById('pause-btn');
+            if(pauseBtn) {
+                pauseBtn.innerHTML = '<i class="fas fa-pause"></i> 暫停';
+                pauseBtn.classList.remove('active');
+            }
+            const optionsContainer = document.getElementById('options-container');
+            if(optionsContainer) {
+                optionsContainer.style.pointerEvents = 'auto';
+                optionsContainer.style.opacity = '1';
+            }
+            if(whiteboardActive) toggleWhiteboard();
+            clearWhiteboard();
+        }
+
+        const canvas = document.getElementById('whiteboard');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let whiteboardActive = false;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', () => {
+            if (whiteboardActive) resizeCanvas();
+        });
+
+        function toggleWhiteboard() {
+            whiteboardActive = !whiteboardActive;
+            const wbBtn = document.getElementById('wb-btn');
+            const clearBtn = document.getElementById('wb-clear-btn');
+            const wbHint = document.getElementById('wb-hint');
+            
+            if(whiteboardActive) {
+                document.body.classList.add('wb-active'); // 變更：掛上防反藍的樣式
+                canvas.classList.add('active');
+                wbBtn.classList.add('active');
+                wbBtn.innerHTML = '<i class="fas fa-times"></i> 關閉白板';
+                clearBtn.style.display = "inline-block";
+                wbHint.style.display = "block";
+                
+                resizeCanvas();
+                ctx.strokeStyle = '#f1c40f'; 
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+            } else {
+                document.body.classList.remove('wb-active'); // 變更：移除防反藍的樣式
+                canvas.classList.remove('active');
+                wbBtn.classList.remove('active');
+                wbBtn.innerHTML = '<i class="fas fa-pen"></i> 白板';
+                clearBtn.style.display = "none";
+                wbHint.style.display = "none";
+            }
+        }
+
+        function clearWhiteboard() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+            if (e.touches && e.touches.length > 0) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+            return { x, y };
+        }
+
+        function startPos(e) {
+            if(!whiteboardActive) return;
+            e.preventDefault();
+            isDrawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            draw(e);
+        }
+
+        function draw(e) {
+            if(!isDrawing || !whiteboardActive) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function endPos() {
+            if(!isDrawing) return;
+            isDrawing = false;
+            ctx.beginPath();
+        }
+
+        canvas.addEventListener('mousedown', startPos);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', endPos);
+        canvas.addEventListener('mouseout', endPos);
+        
+        canvas.addEventListener('touchstart', startPos, {passive: false});
+        canvas.addEventListener('touchmove', draw, {passive: false});
+        canvas.addEventListener('touchend', endPos);
+    </script>
+</body>
+</html>
